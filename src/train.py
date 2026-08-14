@@ -195,6 +195,9 @@ def train(config_path: str = "configs/training_config.yaml", smoke_test: bool = 
             last_checkpoint = checkpoints[-1]
             print(f"🔄 Found existing checkpoint. Resuming training from: {last_checkpoint}")
 
+    # Execute actual model training loop
+    trainer.train(resume_from_checkpoint=last_checkpoint)
+
     if push_to_hub:
         try:
             trainer.push_to_hub()
