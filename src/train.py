@@ -98,6 +98,15 @@ def train(config_path: str = "configs/training_config.yaml", smoke_test: bool = 
     if hub_model_id and smoke_test:
         hub_model_id += "-smoke"
 
+    push_to_hub = train_cfg.get("push_to_hub", False)
+    if push_to_hub:
+        from huggingface_hub import HfFolder
+        import os
+        token = HfFolder.get_token() or os.getenv("HF_TOKEN")
+        if not token:
+            print("⚠️ HuggingFace token not detected. Disabling push_to_hub for this session. Model will save locally.")
+            push_to_hub = False
+
     training_args = Seq2SeqTrainingArguments(
         output_dir=output_dir,
         max_steps=max_steps,
@@ -116,7 +125,7 @@ def train(config_path: str = "configs/training_config.yaml", smoke_test: bool = 
         greater_is_better=train_cfg["greater_is_better"],
         predict_with_generate=True,
         generation_max_length=config["generation"]["generation_max_length"],
-        push_to_hub=train_cfg["push_to_hub"],
+        push_to_hub=push_to_hub,
         hub_model_id=hub_model_id,
     )
 
@@ -144,9 +153,11 @@ def train(config_path: str = "configs/training_config.yaml", smoke_test: bool = 
             last_checkpoint = checkpoints[-1]
             print(f"🔄 Found existing checkpoint. Resuming training from: {last_checkpoint}")
 
-    trainer.train(resume_from_checkpoint=last_checkpoint)
-    if train_cfg["push_to_hub"]:
-        trainer.push_to_hub()
+    if push_to_hub:
+        try:
+            trainer.push_to_hub()
+        except Exception as e:
+            print(f"⚠️ Could not push to HF Hub ({e}). Model saved locally.")
     processor.save_pretrained(training_args.output_dir)
     print(f"✅ Training completed! Model saved to {training_args.output_dir}")
 
