@@ -82,7 +82,6 @@ def build_dataset(config: dict, processor: WhisperProcessor):
         mapped = split_data.map(
             lambda ex: prepare_dataset(ex, processor),
             remove_columns=split_data.column_names,
-            num_proc=2,
         )
         # Drop samples whose tokenized labels exceed Whisper's decoder limit.
         # Amharic in Ethiopic script tokenizes inefficiently; some transcripts
