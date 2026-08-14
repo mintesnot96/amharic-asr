@@ -28,7 +28,7 @@ training:
   gradient_accumulation_steps: 8
   per_device_eval_batch_size: 2
   eval_accumulation_steps: 8
-  optim: "adamw_torch_fused"
+  optim: "adamw_bnb_8bit"
   fp16: true
   evaluation_strategy: "steps"
   eval_steps: 200
