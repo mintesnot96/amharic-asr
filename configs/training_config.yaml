@@ -24,10 +24,11 @@ training:
   max_steps: 4000
   learning_rate: 1.0e-5
   warmup_steps: 500
-  per_device_train_batch_size: 4
-  gradient_accumulation_steps: 4
-  per_device_eval_batch_size: 4
-  eval_accumulation_steps: 4
+  per_device_train_batch_size: 2
+  gradient_accumulation_steps: 8
+  per_device_eval_batch_size: 2
+  eval_accumulation_steps: 8
+  optim: "adamw_torch_fused"
   fp16: true
   evaluation_strategy: "steps"
   eval_steps: 200

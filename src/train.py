@@ -170,6 +170,7 @@ def train(config_path: str = "configs/training_config.yaml", smoke_test: bool = 
         generation_max_length=config["generation"]["generation_max_length"],
         push_to_hub=push_to_hub,
         hub_model_id=hub_model_id,
+        optim=train_cfg.get("optim", "adamw_torch"),
     )
 
     trainer = Seq2SeqTrainer(
