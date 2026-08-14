@@ -100,11 +100,47 @@ def train(config_path: str = "configs/training_config.yaml", smoke_test: bool = 
 
     push_to_hub = train_cfg.get("push_to_hub", False)
     if push_to_hub:
-        from huggingface_hub import HfFolder
+        from huggingface_hub import HfFolder, login
         import os
         token = HfFolder.get_token() or os.getenv("HF_TOKEN")
-        if not token:
-            print("⚠️ HuggingFace token not detected. Disabling push_to_hub for this session. Model will save locally.")
+
+        # Explicit Kaggle dataset token path
+        kaggle_token_path = "/kaggle/input/datasets/mintesnotfikir/haggingface/haggToken.txt"
+        if not token and os.path.exists(kaggle_token_path):
+            try:
+                with open(kaggle_token_path, "r") as f:
+                    token = f.read().strip()
+                print(f"🔑 Found Hugging Face token in Kaggle dataset: {kaggle_token_path}")
+            except Exception as e:
+                print(f"⚠️ Failed reading token file {kaggle_token_path}: {e}")
+
+        # General fallback: scan /kaggle/input for any token text file starting with hf_
+        if not token and os.path.exists("/kaggle/input"):
+            for root, _, files in os.walk("/kaggle/input"):
+                for file in files:
+                    if "token" in file.lower() and file.endswith(".txt"):
+                        full_p = os.path.join(root, file)
+                        try:
+                            with open(full_p, "r") as f:
+                                candidate = f.read().strip()
+                            if candidate.startswith("hf_"):
+                                token = candidate
+                                print(f"🔑 Detected Hugging Face token file at: {full_p}")
+                                break
+                        except Exception:
+                            pass
+                if token:
+                    break
+
+        if token:
+            try:
+                login(token=token)
+                print("✅ Successfully authenticated with Hugging Face Hub!")
+            except Exception as e:
+                print(f"⚠️ Hugging Face login failed ({e}). Disabling push_to_hub for this run.")
+                push_to_hub = False
+        else:
+            print("⚠️ Hugging Face token not detected. Disabling push_to_hub for this session. Model will save locally.")
             push_to_hub = False
 
     training_args = Seq2SeqTrainingArguments(
