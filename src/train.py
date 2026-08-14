@@ -1,7 +1,5 @@
-"""
-Fine-tune openai/whisper-medium on the Leyu Amharic dataset.
-Intended to be run from the Colab notebook, but can also run standalone.
-"""
+import os
+os.environ["PYTORCH_CUDA_ALLOC_CONF"] = "expandable_segments:True"
 
 import yaml
 import torch
@@ -156,6 +154,8 @@ def train(config_path: str = "configs/training_config.yaml", smoke_test: bool = 
         warmup_steps=warmup_steps,
         per_device_train_batch_size=train_cfg["per_device_train_batch_size"],
         gradient_accumulation_steps=train_cfg["gradient_accumulation_steps"],
+        per_device_eval_batch_size=train_cfg.get("per_device_eval_batch_size", 8),
+        eval_accumulation_steps=train_cfg.get("eval_accumulation_steps", 2),
         gradient_checkpointing=True,
         fp16=train_cfg["fp16"],
         eval_strategy=train_cfg.get("eval_strategy", train_cfg.get("evaluation_strategy", "steps")),
