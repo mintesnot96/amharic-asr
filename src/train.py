@@ -130,7 +130,21 @@ def train(config_path: str = "configs/training_config.yaml", smoke_test: bool = 
         processing_class=processor.feature_extractor,
     )
 
-    trainer.train()
+    import os
+    # Automatically detect if a checkpoint exists in output_dir to resume training
+    last_checkpoint = None
+    if os.path.isdir(training_args.output_dir):
+        checkpoints = [
+            os.path.join(training_args.output_dir, d)
+            for d in os.listdir(training_args.output_dir)
+            if d.startswith("checkpoint-") and os.path.isdir(os.path.join(training_args.output_dir, d))
+        ]
+        if checkpoints:
+            checkpoints.sort(key=lambda x: int(x.split("-")[-1]))
+            last_checkpoint = checkpoints[-1]
+            print(f"🔄 Found existing checkpoint. Resuming training from: {last_checkpoint}")
+
+    trainer.train(resume_from_checkpoint=last_checkpoint)
     if train_cfg["push_to_hub"]:
         trainer.push_to_hub()
     processor.save_pretrained(training_args.output_dir)
