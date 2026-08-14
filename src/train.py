@@ -100,9 +100,15 @@ def train(config_path: str = "configs/training_config.yaml", smoke_test: bool = 
 
     push_to_hub = train_cfg.get("push_to_hub", False)
     if push_to_hub:
-        from huggingface_hub import HfFolder, login
+        from huggingface_hub import login
+        try:
+            from huggingface_hub import get_token
+            token = get_token()
+        except ImportError:
+            token = None
+
         import os
-        token = HfFolder.get_token() or os.getenv("HF_TOKEN")
+        token = token or os.getenv("HF_TOKEN")
 
         # Explicit Kaggle dataset token path
         kaggle_token_path = "/kaggle/input/datasets/mintesnotfikir/haggingface/haggToken.txt"
