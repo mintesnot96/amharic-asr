@@ -113,7 +113,7 @@ amharic-asr/
 ├── src/
 │   ├── data_prep.py           # Dataset loading & preprocessing
 │   ├── train.py               # Training script (called from notebook)
-│   └── evaluate.py            # WER/CER evaluation script
+│   └── eval_model.py          # WER/CER evaluation script
 ├── demo/
 │   └── app.py                 # Gradio demo app (deployed to HF Spaces)
 └── configs/
