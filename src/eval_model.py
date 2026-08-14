@@ -31,7 +31,10 @@ def run_evaluation(model_id: str, dataset_name: str, test_split: str = "test"):
         language="amharic", task="transcribe"
     )
 
-    dataset = load_dataset(dataset_name, split=test_split)
+    try:
+        dataset = load_dataset(dataset_name, split=test_split, verification_mode="no_checks")
+    except TypeError:
+        dataset = load_dataset(dataset_name, split=test_split, ignore_verifications=True)
     dataset = dataset.cast_column("audio", Audio(sampling_rate=16000))
 
     results = dataset.map(

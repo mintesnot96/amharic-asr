@@ -16,7 +16,11 @@ def load_and_combine_datasets(dataset_names: list[str]) -> object:
     """Load all dialect datasets and combine into one."""
     splits = []
     for name in dataset_names:
-        ds = load_dataset(name, split="train")
+        try:
+            ds = load_dataset(name, split="train", verification_mode="no_checks")
+        except TypeError:
+            # Fallback for older datasets library versions
+            ds = load_dataset(name, split="train", ignore_verifications=True)
         splits.append(ds)
     return concatenate_datasets(splits)
 
