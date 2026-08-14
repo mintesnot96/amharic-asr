@@ -1,5 +1,4 @@
 import os
-os.environ["CUDA_VISIBLE_DEVICES"] = "0"
 os.environ["PYTORCH_CUDA_ALLOC_CONF"] = "expandable_segments:True"
 
 import yaml
@@ -148,6 +147,14 @@ def train(config_path: str = "configs/training_config.yaml", smoke_test: bool = 
             print("⚠️ Hugging Face token not detected. Disabling push_to_hub for this session. Model will save locally.")
             push_to_hub = False
 
+    optim_choice = train_cfg.get("optim", "adamw_torch")
+    if "bnb" in optim_choice:
+        try:
+            import bitsandbytes
+        except Exception as e:
+            print(f"⚠️ bitsandbytes not available or compatible ({e}). Falling back to adamw_torch.")
+            optim_choice = "adamw_torch"
+
     training_args = Seq2SeqTrainingArguments(
         output_dir=output_dir,
         max_steps=max_steps,
@@ -170,7 +177,7 @@ def train(config_path: str = "configs/training_config.yaml", smoke_test: bool = 
         generation_max_length=config["generation"]["generation_max_length"],
         push_to_hub=push_to_hub,
         hub_model_id=hub_model_id,
-        optim=train_cfg.get("optim", "adamw_torch"),
+        optim=optim_choice,
     )
 
     trainer = Seq2SeqTrainer(
