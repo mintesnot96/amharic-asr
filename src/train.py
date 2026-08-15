@@ -177,14 +177,20 @@ def train(config_path: str = "configs/training_config.yaml", smoke_test: bool = 
         generation_max_length=config["generation"]["generation_max_length"],
         push_to_hub=push_to_hub,
         hub_model_id=hub_model_id,
+        hub_strategy="checkpoint" if push_to_hub else "end",
         optim=optim_choice,
     )
+
+    # Use a representative 300-sample validation subset for fast step evaluation (30s vs 15min)
+    eval_dataset = dataset["validation"]
+    if len(eval_dataset) > 300:
+        eval_dataset = eval_dataset.shuffle(seed=42).select(range(300))
 
     trainer = Seq2SeqTrainer(
         model=model,
         args=training_args,
         train_dataset=dataset["train"],
-        eval_dataset=dataset["validation"],
+        eval_dataset=eval_dataset,
         data_collator=data_collator,
         compute_metrics=lambda pred: compute_metrics(pred, processor),
         processing_class=processor.feature_extractor,
