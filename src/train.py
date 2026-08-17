@@ -169,6 +169,7 @@ def train(config_path: str = "configs/training_config.yaml", smoke_test: bool = 
         eval_strategy=train_cfg.get("eval_strategy", train_cfg.get("evaluation_strategy", "steps")),
         eval_steps=eval_steps,
         save_steps=save_steps,
+        save_total_limit=train_cfg.get("save_total_limit", 2),
         logging_steps=logging_steps,
         load_best_model_at_end=train_cfg["load_best_model_at_end"],
         metric_for_best_model=train_cfg["metric_for_best_model"],
